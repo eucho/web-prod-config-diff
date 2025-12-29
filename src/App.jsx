@@ -32,9 +32,9 @@ function App() {
 
   useEffect(() => {
     if (selectedKey1 && selectedKey2) {
-      const config1 = getConfigValue(parsedText1, selectedKey1);
-      const config2 = getConfigValue(parsedText2, selectedKey2);
-      const diff = Diff.diffChars(config1, config2);
+      const config1 = getConfigValue(parsedText1, selectedKey1).replace(/\]/g, ']\n');
+      const config2 = getConfigValue(parsedText2, selectedKey2).replace(/\]/g, ']\n');
+      const diff = Diff.diffLines(config1, config2);
       setDiffResult(diff);
     } else {
       setDiffResult(null);
