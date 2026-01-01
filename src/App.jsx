@@ -22,8 +22,8 @@ function App() {
     const parsed2 = parseText(text2);
     setParsedText1(parsed1);
     setParsedText2(parsed2);
-    setKeys1(getKeys(parsed1));
-    setKeys2(getKeys(parsed2));
+    setKeys1(getKeys(parsed1));                                        
+    setKeys2(getKeys(parsed2));   
     setSubmitted(true);
     setSelectedKey1('');
     setSelectedKey2('');
@@ -35,64 +35,60 @@ function App() {
       const config1 = getConfigValue(parsedText1, selectedKey1).replace(/\]/g, ']\n');
       const config2 = getConfigValue(parsedText2, selectedKey2).replace(/\]/g, ']\n');
 
-      // Split into lines
-      const lines1 = config1.split('\n').filter(line => line.trim());
-      const lines2 = config2.split('\n').filter(line => line.trim());
+      // Use diffLines to get optimal differences (Myers algorithm)
+      const diff = Diff.diffLines(config1, config2);
 
-      // Use diffArrays to get the differences
-      const diff = Diff.diffArrays(lines1, lines2);
-
-      // Process diff to create side-by-side line pairs
       const processedDiff = [];
-      let index1 = 0;
-      let index2 = 0;
 
-      diff.forEach(part => {
+      // Process diff using a simple for loop to handle modified pairs
+      for (let i = 0; i < diff.length; i++) {
+        const part = diff[i];
+
         if (!part.added && !part.removed) {
-          // Unchanged lines - show them as-is
-          part.value.forEach(line => {
+          // Unchanged lines
+          const lines = part.value.split('\n').filter(line => line.trim());
+          lines.forEach(line => {
             processedDiff.push({ type: 'unchanged', line });
-            index1++;
-            index2++;
           });
-        } else if (part.removed) {
-          // Removed lines - store them temporarily
-          const removedLines = part.value;
-          index1 += removedLines.length;
+        } else if (part.removed && i + 1 < diff.length && diff[i + 1].added) {
+          // Modified: pair removed + added blocks
+          const removedLines = part.value.split('\n').filter(line => line.trim());
+          const addedLines = diff[i + 1].value.split('\n').filter(line => line.trim());
 
-          // Check if next part is added (then we can pair them)
-          const nextPartIndex = diff.indexOf(part) + 1;
-          if (nextPartIndex < diff.length && diff[nextPartIndex].added) {
-            const addedLines = diff[nextPartIndex].value;
-            index2 += addedLines.length;
-
-            // Pair up removed and added lines
-            const maxLen = Math.max(removedLines.length, addedLines.length);
-            for (let i = 0; i < maxLen; i++) {
-              if (i < removedLines.length && i < addedLines.length) {
-                processedDiff.push({ type: 'modified', removed: removedLines[i], added: addedLines[i] });
-              } else if (i < removedLines.length) {
-                processedDiff.push({ type: 'removed', line: removedLines[i] });
-              } else {
-                processedDiff.push({ type: 'added', line: addedLines[i] });
-              }
+          // Only match line-by-line if counts are equal
+          if (removedLines.length === addedLines.length) {
+            // Same number of lines - pair them up as modified
+            for (let j = 0; j < removedLines.length; j++) {
+              processedDiff.push({
+                type: 'modified',
+                removed: removedLines[j],
+                added: addedLines[j]
+              });
             }
-            // Skip the next added part since we already processed it
-            diff[nextPartIndex].processed = true;
           } else {
-            // Just removed lines without corresponding additions
+            // Different number of lines - show as separate removed and added blocks
             removedLines.forEach(line => {
               processedDiff.push({ type: 'removed', line });
             });
+            addedLines.forEach(line => {
+              processedDiff.push({ type: 'added', line });
+            });
           }
-        } else if (part.added && !part.processed) {
-          // Just added lines without corresponding removals
-          part.value.forEach(line => {
+          i++; // Skip next added part since we already processed it
+        } else if (part.removed) {
+          // Pure removal
+          const lines = part.value.split('\n').filter(line => line.trim());
+          lines.forEach(line => {
+            processedDiff.push({ type: 'removed', line });
+          });
+        } else if (part.added) {
+          // Pure addition
+          const lines = part.value.split('\n').filter(line => line.trim());
+          lines.forEach(line => {
             processedDiff.push({ type: 'added', line });
-            index2++;
           });
         }
-      });
+      }
 
       setDiffResult(processedDiff);
     } else {
