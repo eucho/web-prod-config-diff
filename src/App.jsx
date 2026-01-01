@@ -3,6 +3,7 @@ import * as Diff from 'diff';
 import TextInputSection from './components/TextInputSection';
 import ComparisonSection from './components/ComparisonSection';
 import { parseText, getKeys, getConfigValue } from './utils/parser';
+import { matchLines } from './utils/lineMatcher';
 import './App.css';
 
 function App() {
@@ -51,29 +52,14 @@ function App() {
             processedDiff.push({ type: 'unchanged', line });
           });
         } else if (part.removed && i + 1 < diff.length && diff[i + 1].added) {
-          // Modified: pair removed + added blocks
+          // Modified: pair removed + added blocks using intelligent matching
           const removedLines = part.value.split('\n').filter(line => line.trim());
           const addedLines = diff[i + 1].value.split('\n').filter(line => line.trim());
 
-          // Only match line-by-line if counts are equal
-          if (removedLines.length === addedLines.length) {
-            // Same number of lines - pair them up as modified
-            for (let j = 0; j < removedLines.length; j++) {
-              processedDiff.push({
-                type: 'modified',
-                removed: removedLines[j],
-                added: addedLines[j]
-              });
-            }
-          } else {
-            // Different number of lines - show as separate removed and added blocks
-            removedLines.forEach(line => {
-              processedDiff.push({ type: 'removed', line });
-            });
-            addedLines.forEach(line => {
-              processedDiff.push({ type: 'added', line });
-            });
-          }
+          // Use intelligent line matching
+          const matchedResults = matchLines(removedLines, addedLines);
+          processedDiff.push(...matchedResults);
+
           i++; // Skip next added part since we already processed it
         } else if (part.removed) {
           // Pure removal
