@@ -3,7 +3,7 @@ function TextInputSection({ text1, text2, onText1Change, onText2Change, onSubmit
     <div className="text-input-section">
       <div className="text-areas-container">
         <div className="text-area-wrapper">
-          <label>Text 1</label>
+          <label>Left Side</label>
           <textarea
             value={text1}
             onChange={(e) => onText1Change(e.target.value)}
@@ -12,7 +12,7 @@ function TextInputSection({ text1, text2, onText1Change, onText2Change, onSubmit
           />
         </div>
         <div className="text-area-wrapper">
-          <label>Text 2</label>
+          <label>Right Side</label>
           <textarea
             value={text2}
             onChange={(e) => onText2Change(e.target.value)}

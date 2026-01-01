@@ -34,8 +34,67 @@ function App() {
     if (selectedKey1 && selectedKey2) {
       const config1 = getConfigValue(parsedText1, selectedKey1).replace(/\]/g, ']\n');
       const config2 = getConfigValue(parsedText2, selectedKey2).replace(/\]/g, ']\n');
-      const diff = Diff.diffLines(config1, config2);
-      setDiffResult(diff);
+
+      // Split into lines
+      const lines1 = config1.split('\n').filter(line => line.trim());
+      const lines2 = config2.split('\n').filter(line => line.trim());
+
+      // Use diffArrays to get the differences
+      const diff = Diff.diffArrays(lines1, lines2);
+
+      // Process diff to create side-by-side line pairs
+      const processedDiff = [];
+      let index1 = 0;
+      let index2 = 0;
+
+      diff.forEach(part => {
+        if (!part.added && !part.removed) {
+          // Unchanged lines - show them as-is
+          part.value.forEach(line => {
+            processedDiff.push({ type: 'unchanged', line });
+            index1++;
+            index2++;
+          });
+        } else if (part.removed) {
+          // Removed lines - store them temporarily
+          const removedLines = part.value;
+          index1 += removedLines.length;
+
+          // Check if next part is added (then we can pair them)
+          const nextPartIndex = diff.indexOf(part) + 1;
+          if (nextPartIndex < diff.length && diff[nextPartIndex].added) {
+            const addedLines = diff[nextPartIndex].value;
+            index2 += addedLines.length;
+
+            // Pair up removed and added lines
+            const maxLen = Math.max(removedLines.length, addedLines.length);
+            for (let i = 0; i < maxLen; i++) {
+              if (i < removedLines.length && i < addedLines.length) {
+                processedDiff.push({ type: 'modified', removed: removedLines[i], added: addedLines[i] });
+              } else if (i < removedLines.length) {
+                processedDiff.push({ type: 'removed', line: removedLines[i] });
+              } else {
+                processedDiff.push({ type: 'added', line: addedLines[i] });
+              }
+            }
+            // Skip the next added part since we already processed it
+            diff[nextPartIndex].processed = true;
+          } else {
+            // Just removed lines without corresponding additions
+            removedLines.forEach(line => {
+              processedDiff.push({ type: 'removed', line });
+            });
+          }
+        } else if (part.added && !part.processed) {
+          // Just added lines without corresponding removals
+          part.value.forEach(line => {
+            processedDiff.push({ type: 'added', line });
+            index2++;
+          });
+        }
+      });
+
+      setDiffResult(processedDiff);
     } else {
       setDiffResult(null);
     }
