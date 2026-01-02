@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import * as Diff from 'diff';
 import TextInputSection from './components/TextInputSection';
 import ComparisonSection from './components/ComparisonSection';
+import PermalinkButton from './components/PermalinkButton';
 import { parseText, getKeys, getConfigValue } from './utils/parser';
 import { matchLines } from './utils/lineMatcher';
 import './App.css';
@@ -17,6 +18,60 @@ function App() {
   const [selectedKey2, setSelectedKey2] = useState('');
   const [diffResult, setDiffResult] = useState(null);
   const [submitted, setSubmitted] = useState(false);
+  const [permalinkUrl, setPermalinkUrl] = useState(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // Load permalink on initialization
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const permalinkId = urlParams.get('permalink');
+
+    if (permalinkId) {
+      loadPermalink(permalinkId);
+    }
+  }, []);
+
+  const loadPermalink = async (id) => {
+    try {
+      const response = await fetch(`/api/load-permalink?id=${id}`);
+      const result = await response.json();
+
+      if (result.success) {
+        setText1(result.text1 || '');
+        setText2(result.text2 || '');
+      }
+      // On failure, do nothing - text1/text2 remain as default empty strings
+    } catch (error) {
+      // Silent failure, no error display
+      console.error('Load permalink error:', error);
+    }
+  };
+
+  const handleGeneratePermalink = async () => {
+    setIsGenerating(true);
+    setPermalinkUrl(null);
+
+    try {
+      const response = await fetch('/api/save-permalink', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text1, text2 }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setPermalinkUrl(result.url);
+      } else {
+        // Display storage full or other errors
+        alert(result.error || 'Failed to generate permalink. Please try again.');
+      }
+    } catch (error) {
+      alert('Network error. Please check your connection and try again.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const handleSubmit = () => {
     const parsed1 = parseText(text1);
@@ -84,7 +139,14 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Web Config Diff</h1>
+      <div className="app-header">
+        <h1>Web Prod Config Diff</h1>
+        <PermalinkButton
+          onGenerate={handleGeneratePermalink}
+          isGenerating={isGenerating}
+          permalinkUrl={permalinkUrl}
+        />
+      </div>
       <TextInputSection
         text1={text1}
         text2={text2}

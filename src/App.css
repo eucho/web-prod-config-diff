@@ -7,7 +7,78 @@
 .App h1 {
   text-align: center;
   margin-bottom: 1rem;
+  margin: 0;
+  font-size: 1.5rem;
   color: #646cff;
+}
+
+/* App header area */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 1rem;
+}
+
+/* Permalink container */
+.permalink-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+/* Permalink button */
+.permalink-button {
+  background-color: #646cff;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.permalink-button:hover {
+  background-color: #535bf2;
+}
+
+.permalink-button:disabled {
+  background-color: #a0a0a0;
+  cursor: not-allowed;
+}
+
+/* Permalink display area */
+.permalink-display {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.permalink-display input {
+  width: 350px;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-family: monospace;
+}
+
+.permalink-display button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.permalink-display button:hover {
+  background-color: #218838;
 }
 
 /* Text Input Section */
