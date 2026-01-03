@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
-This is a frontend-only React + Vite application for comparing multi-line configuration text. The app parses configuration lines in the format `Key_1=[config_1][config_2]...[config_n]` and provides side-by-side text comparison with visual diff highlighting using intelligent line-based diff with character-level highlighting for modified lines.
+This is a React + Vite application for comparing multi-line configuration text. The app parses configuration lines in the format `Key_1=[config_1][config_2]...[config_n]` and provides side-by-side text comparison with visual diff highlighting using intelligent line-based diff with character-level highlighting for modified lines. It includes permalink functionality to share comparison states via unique URLs backed by Redis storage.
 
 ## Application Architecture
 
@@ -22,10 +22,11 @@ State flow:
 - `diffResult` contains line-level differences using `diff.diffLines`
 
 ### Component Structure
-- **App.jsx**: Main component managing state and workflow
+- **App.jsx**: Main component managing state and workflow, including permalink state management
 - **TextInputSection**: Side-by-side text areas with submit button
 - **ComparisonSection**: Dropdown selectors and DiffViewer container
 - **DiffViewer**: Renders highlighted diff with color coding (green=added, red=removed, gray=unchanged, side-by-side for modified)
+- **PermalinkButton**: UI for generating and displaying shareable permalink URLs
 - **utils/parser.js**: Text parsing utilities with variable reference support
 - **utils/lineMatcher.js**: Intelligent line matching algorithm for optimal diff pairing
 
@@ -80,6 +81,14 @@ For lines marked as `modified`:
 ### Styling
 - Responsive design using CSS Grid and Flexbox
 - Color scheme: #646cff (primary), #28a745 (added), #dc3545 (removed)
+
+### Permalink Feature
+Users can generate shareable permalinks to save and restore comparison states:
+- **Frontend**: PermalinkButton component handles URL generation and display with copy-to-clipboard
+- **Backend**: Vercel serverless functions (`/api/save-permalink` and `/api/load-permalink`)
+- **Storage**: Redis with 8-character nanoid keys, 30-day expiration
+- **URL format**: `https://domain.com/?permalink={id}`
+- Requires `REDIS_URL` environment variable
 
 ## Deployment
 
