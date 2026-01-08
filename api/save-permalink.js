@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { text1, text2 } = req.body;
+    const { text1, text2, key1, key2 } = req.body;
 
     // Generate 8-character ID
     const id = nanoid(8);
@@ -22,12 +22,21 @@ export default async function handler(req, res) {
     // Connect to Redis
     await client.connect();
 
-    // Save data (30-day expiration)
-    const data = JSON.stringify({
+    // Prepare data object
+    const dataObj = {
       text1: text1 || '',
       text2: text2 || '',
       createdAt: new Date().toISOString()
-    });
+    };
+
+    // Only save keys if both are present
+    if (key1 && key2) {
+      dataObj.key1 = key1;
+      dataObj.key2 = key2;
+    }
+
+    // Save data (30-day expiration)
+    const data = JSON.stringify(dataObj);
 
     try {
       await client.setEx(`permalink:${id}`, 2592000, data); // 30 days = 2592000 seconds

@@ -33,7 +33,9 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       text1: parsed.text1,
-      text2: parsed.text2
+      text2: parsed.text2,
+      key1: parsed.key1,
+      key2: parsed.key2
     });
 
   } catch (error) {

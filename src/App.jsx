@@ -37,8 +37,29 @@ function App() {
       const result = await response.json();
 
       if (result.success) {
-        setText1(result.text1 || '');
-        setText2(result.text2 || '');
+        const loadedText1 = result.text1 || '';
+        const loadedText2 = result.text2 || '';
+
+        setText1(loadedText1);
+        setText2(loadedText2);
+
+        // If keys are present, we need to parse immediately to show the comparison
+        if (result.key1 && result.key2) {
+          const parsed1 = parseText(loadedText1);
+          const parsed2 = parseText(loadedText2);
+
+          setParsedText1(parsed1);
+          setParsedText2(parsed2);
+          setKeys1(getKeys(parsed1));
+          setKeys2(getKeys(parsed2));
+          setSubmitted(true);
+
+          // Verify keys exist in the parsed text before setting them
+          // This handles cases where text might have changed but old keys were stored
+          // (though less likely with permalinks, good for safety)
+          setSelectedKey1(result.key1);
+          setSelectedKey2(result.key2);
+        }
       }
       // On failure, do nothing - text1/text2 remain as default empty strings
     } catch (error) {
@@ -51,11 +72,22 @@ function App() {
     setIsGenerating(true);
     setPermalinkUrl(null);
 
+    const payload = {
+      text1,
+      text2
+    };
+
+    // Only save keys if both are selected
+    if (selectedKey1 && selectedKey2) {
+      payload.key1 = selectedKey1;
+      payload.key2 = selectedKey2;
+    }
+
     try {
       const response = await fetch('/api/save-permalink', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text1, text2 }),
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();

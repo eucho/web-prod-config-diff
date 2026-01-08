@@ -84,11 +84,12 @@ For lines marked as `modified`:
 
 ### Permalink Feature
 Users can generate shareable permalinks to save and restore comparison states:
-- **Frontend**: PermalinkButton component handles URL generation and display with copy-to-clipboard
-- **Backend**: Vercel serverless functions (`/api/save-permalink` and `/api/load-permalink`)
-- **Storage**: Redis with 8-character nanoid keys, 30-day expiration
+- **Frontend**: PermalinkButton component handles URL generation; `App.jsx` manages state persistence and restoration.
+- **Backend**: Vercel serverless functions (`/api/save-permalink` and `/api/load-permalink`) interact with Redis.
+- **State Restoration**: If `key1` and `key2` are saved, the app automatically parses text and displays the comparison on load.
+- **Storage**: Redis with 8-character nanoid keys, 30-day expiration.
 - **URL format**: `https://domain.com/?permalink={id}`
-- Requires `REDIS_URL` environment variable
+- Requires `REDIS_URL` environment variable.
 
 ## Deployment
 
