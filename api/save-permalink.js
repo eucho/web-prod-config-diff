@@ -1,5 +1,6 @@
 import { createClient } from 'redis';
 import { nanoid } from 'nanoid';
+import { authenticateApiKey } from './middleware/auth.js';
 
 // Create Redis client (using REDIS_URL environment variable)
 const client = createClient({
@@ -11,6 +12,11 @@ client.on('error', (err) => console.error('Redis Client Error', err));
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
+  }
+
+  // Authenticate API key
+  if (!authenticateApiKey(req, res)) {
+    return; // Response already sent by middleware
   }
 
   try {

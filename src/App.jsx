@@ -33,7 +33,14 @@ function App() {
 
   const loadPermalink = async (id) => {
     try {
-      const response = await fetch(`/api/load-permalink?id=${id}`);
+      const headers = { 'Content-Type': 'application/json' };
+
+      // Add API key if configured
+      if (import.meta.env.VITE_API_KEY) {
+        headers['x-api-key'] = import.meta.env.VITE_API_KEY;
+      }
+
+      const response = await fetch(`/api/load-permalink?id=${id}`, { headers });
       const result = await response.json();
 
       if (result.success) {
@@ -84,9 +91,16 @@ function App() {
     }
 
     try {
+      const headers = { 'Content-Type': 'application/json' };
+
+      // Add API key if configured
+      if (import.meta.env.VITE_API_KEY) {
+        headers['x-api-key'] = import.meta.env.VITE_API_KEY;
+      }
+
       const response = await fetch('/api/save-permalink', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(payload),
       });
 
